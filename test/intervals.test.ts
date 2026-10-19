@@ -56,18 +56,6 @@ it("output intervals are sorted", () => {
   );
 });
 
-const xs = [
-  [1, 5],
-  [3, 7],
-  [10, 15],
-];
-
-mergeIntervals(xs);
-// [[1, 7], [10, 15]]
-
-mergeIntervals(mergeIntervals(xs));
-// [[1, 7], [10, 15]]
-
 // Pattern: algebraic. Merging twice equals merging once.
 it("merging twice gives the same result", () => {
   fc.assert(
