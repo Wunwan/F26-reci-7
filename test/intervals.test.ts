@@ -24,6 +24,33 @@ const interval: fc.Arbitrary<Interval> = fc
   .map(([a, b]) => [Math.min(a, b), Math.max(a, b)] as Interval);
 
 const intervalList = fc.array(interval);
+const touchingPair = fc
+  .tuple(
+    fc.integer({ min: -100, max: 100 }),
+    fc.integer({ min: 1, max: 20 }),
+    fc.integer({ min: 1, max: 20 }),
+  )
+  .map(
+    ([start, a, b]) =>
+      [
+        [start, start + a],
+        [start + a, start + a + b],
+      ] as Interval[],
+  );
+
+const disjointPair = fc
+  .tuple(
+    fc.integer({ min: -100, max: 100 }),
+    fc.integer({ min: 1, max: 20 }),
+    fc.integer({ min: 1, max: 20 }),
+  )
+  .map(
+    ([start, a, b]) =>
+      [
+        [start, start + a],
+        [start + a + 1, start + a + 1 + b],
+      ] as Interval[],
+  );
 
 describe("mergeIntervals", () => {
   // Pattern: invariant. Every input interval lies inside some output interval.
@@ -75,6 +102,41 @@ it("reversing the input does not change the result", () => {
       const reversed = mergeIntervals([...xs].reverse());
 
       expect(reversed).toEqual(original);
+    }),
+  );
+});
+
+// Pattern: conditional. Touching intervals must merge.
+it("merges touching intervals", () => {
+  fc.assert(
+    fc.property(touchingPair, (xs) => {
+      const out = mergeIntervals(xs);
+
+      expect(out).toEqual([[xs[0][0], xs[1][1]]]);
+    }),
+  );
+});
+
+// Pattern: conditional. Already-disjoint intervals stay separate.
+it("keeps disjoint intervals separate", () => {
+  fc.assert(
+    fc.property(disjointPair, (xs) => {
+      const out = mergeIntervals(xs);
+
+      expect(out).toEqual(xs);
+    }),
+  );
+});
+
+// Pattern: invariant. Merging does not modify the original input.
+it("does not modify the input", () => {
+  fc.assert(
+    fc.property(touchingPair, (xs) => {
+      const original = xs.map(([s, e]) => [s, e] as Interval);
+
+      mergeIntervals(xs);
+
+      expect(xs).toEqual(original);
     }),
   );
 });

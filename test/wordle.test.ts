@@ -87,6 +87,29 @@ it("never credits a letter more times than the secret contains it", () => {
   );
 });
 
+// Pattern: conditional. Swapped letters should be yellow.
+it("swapped letters should be yellow", () => {
+  fc.assert(
+    fc.property(
+      fc.uniqueArray(fc.constantFrom(..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"), {
+        minLength: 5,
+        maxLength: 5,
+      }),
+      (letters) => {
+        const secret = letters.join("");
+
+        const guess = [letters[1], letters[0], ...letters.slice(2)].join("");
+
+        const result = matchGuess(guess, secret);
+
+        expect(result[0]).toBe("Y");
+        expect(result[1]).toBe("Y");
+        expect(result.slice(2)).toEqual(["G", "G", "G"]);
+      },
+    ),
+  );
+});
+
 describe("matchGuess", () => {
   it.todo("returns exactly five colors");
   it.todo("only uses the colors G, Y, B");
